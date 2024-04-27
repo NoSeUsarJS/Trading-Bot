@@ -1,0 +1,5 @@
+python-binance
+numpy
+urllib3==1.26.6
+win10toast
+python-dotenv
