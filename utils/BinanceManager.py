@@ -30,8 +30,8 @@ class BinanceManager:
 
         return max_ticket[0]
     
-    def get_balance(self):
-        return float(self.client.get_asset_balance(asset='USDT')['free'])
+    def get_balance(self, symbol):
+        return float(self.client.get_asset_balance(asset='USDT')['free']), float(self.client.get_asset_balance(asset=symbol[:-4])['free'])
     
     # Función para obtener los datos del precio de cierre
     def get_closing_prices(self, symbol, timeframe, limit):
@@ -82,7 +82,7 @@ class BinanceManager:
 
         quantity = max(min_qty, quantity)
         quantity = math.floor(quantity / min_qty) * min_qty
-        quantity = round(quantity, 4)
+        quantity = math.floor(quantity * 10**4) / 10**4
 
         print(f"Inversión de {quantity} {symbol[:-4]}: {round(usdt_balance * 1, 4)} USDT")
         buy_order = self.client.order_market_buy(symbol=symbol, quantity=quantity)
@@ -91,13 +91,13 @@ class BinanceManager:
     def sell_order(self, symbol, decimales):
         account_info = self.client.get_account()
         balances = {item['asset']: float(item['free']) for item in account_info['balances']}
-        quantity = float(balances.get(symbol[:-4], 0))
+        quantity = float(balances.get(symbol[:-4], 0)) * 1
         
         min_qty = self.minQty(symbol=symbol)
 
         quantity = max(min_qty, quantity)
         quantity = math.floor(quantity / min_qty) * min_qty
-        quantity = round(quantity, decimales)
+        quantity = math.floor(quantity * 10**decimales) / 10**decimales
 
         sell_order = self.client.order_market_sell(symbol=symbol, quantity=quantity)
         print("Orden de compra:", sell_order)

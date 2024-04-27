@@ -18,15 +18,12 @@ api_secret = os.getenv("API_SECRET")
 
 binance_manager = BinanceManager(api_key=api_key, api_secret=api_secret)
 
+#symbol = input('Ingrese par: ')
 symbol = binance_manager.find_symbol()
 
 writer = Writer()
 
 writer._write_headers(symbol=symbol, timeframe=timeframe)
-
-balance = binance_manager.get_balance()
-
-inversion = balance/2
 
 buy_value = 0
 sell_value = 0
@@ -64,7 +61,7 @@ current_time = None
 current_symbol = symbol
 max_change_thread = threading.Thread(target=execute_find_symbol)
 max_change_thread.daemon = True
-max_change_thread.start()
+#max_change_thread.start()
 change_symbol_signal= False
 
 is_positive_var = False
@@ -80,6 +77,7 @@ while True:
         print(f'PAR CAMBIADO A {current_symbol}')
         toaster.show_toast(f'PAR CAMBIADO A {current_symbol}', duration=1)
     try:
+        balance_usdt, balance_symbol = binance_manager.get_balance(symbol=current_symbol)
         if total_profit >= 6:
             current_time = datetime.now()
             current_time = current_time.strftime("%H:%M:%S")
@@ -118,7 +116,6 @@ while True:
             sell_price = closing_prices[-1]
 
         print("-----------------------------------------------------------------")
-        print(f"Cantidad mínima a invertir: {binance_manager.minQty(current_symbol)}")
         if holding:
             delta = round(100*closing_prices[-1]/buy_value - 100, 2)
 
@@ -138,7 +135,7 @@ while True:
         print(f"SMA 5: {sma_fast}, SMA 200: {sma_slow}, previous SMA 200: {previous_sma_slow}")
         print(f"Pendiente: {slope}")
         print(f'Total profit: {total_profit}%')
-        print(f'Balance: {balance}')
+        print(f'Balance: {balance_usdt}USDT  {balance_symbol}{current_symbol[:-4]}')
         print("-----------------------------------------------------------------")
 
         if slope > 0 and buy_signal and closing_prices[-1] < sma_fast and is_positive_var and not holding:
@@ -149,7 +146,6 @@ while True:
             buy_time = datetime.now().strftime("%H:%M:%S")
 
             toaster.show_toast(f"COMPRA {current_symbol}", f'{buy_value}', duration=1)
-            balance = balance - inversion
         
             holding = True
             continue
@@ -173,8 +169,6 @@ while True:
             total_profit_no_comision += delta + 0.1
 
             toaster.show_toast(f"VENTA {current_symbol}", f'{buy_value},{delta}%', duration=1)
-            diferencia = inversion * (1 + delta/100)
-            balance = balance + diferencia
 
             current_time = datetime.now()
             current_time = current_time.strftime("%H:%M:%S")
